@@ -407,3 +407,280 @@ if __name__ == "__main__":
 ```
 
 ---
+
+### 栈 (Stack)
+
+#### 💡 核心概念
+
+栈是一种后进先出(LIFO)的数据结构。在 Python 中，可以使用列表(list)或 collections.deque 实现栈。
+
+#### ⏱️ 时间复杂度分析
+
+| 操作 | 时间复杂度 | 说明 |
+|------|------------|------|
+| 入栈(push) | O(1) | 在栈顶添加元素 |
+| 出栈(pop) | O(1) | 从栈顶移除元素 |
+| 查看栈顶元素 | O(1) | 获取栈顶元素但不移除 |
+| 判断栈是否为空 | O(1) | 检查栈是否为空 |
+
+#### 🛠️ 常用方法调用示例
+
+```python
+# 基于列表的栈实现
+class ListStack:
+    """基于列表的栈实现"""
+    def __init__(self):
+        self.items = []
+    
+    def is_empty(self):
+        """检查栈是否为空"""
+        return len(self.items) == 0
+    
+    def push(self, item):
+        """入栈"""
+        self.items.append(item)
+    
+    def pop(self):
+        """出栈"""
+        if self.is_empty():
+            raise IndexError("pop from empty stack")
+        return self.items.pop()
+    
+    def peek(self):
+        """查看栈顶元素"""
+        if self.is_empty():
+            raise IndexError("peek from empty stack")
+        return self.items[-1]
+    
+    def size(self):
+        """获取栈大小"""
+        return len(self.items)
+    
+    def __str__(self):
+        return str(self.items)
+
+# 基于collections.deque的栈实现（推荐）
+from collections import deque
+
+class DequeStack:
+    """基于collections.deque的栈实现（推荐）"""
+    def __init__(self):
+        self.items = deque()
+    
+    def is_empty(self):
+        """检查栈是否为空"""
+        return len(self.items) == 0
+    
+    def push(self, item):
+        """入栈"""
+        self.items.append(item)
+    
+    def pop(self):
+        """出栈"""
+        if self.is_empty():
+            raise IndexError("pop from empty stack")
+        return self.items.pop()
+    
+    def peek(self):
+        """查看栈顶元素"""
+        if self.is_empty():
+            raise IndexError("peek from empty stack")
+        return self.items[-1]
+    
+    def size(self):
+        """获取栈大小"""
+        return len(self.items)
+    
+    def __str__(self):
+        return str(list(self.items))
+
+# 栈的应用示例
+
+# 1. 括号匹配
+def check_brackets(expression):
+    """检查表达式中的括号是否匹配"""
+    stack = DequeStack()
+    brackets = {'(': ')', '[': ']', '{': '}'}
+    
+    for char in expression:
+        if char in brackets.keys():  # 左括号
+            stack.push(char)
+        elif char in brackets.values():  # 右括号
+            if stack.is_empty():
+                return False
+            
+            left_bracket = stack.pop()
+            if brackets[left_bracket] != char:
+                return False
+    
+    return stack.is_empty()
+
+# 2. 中缀表达式转后缀表达式
+def infix_to_postfix(expression):
+    """中缀表达式转后缀表达式"""
+    precedence = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}
+    stack = DequeStack()
+    output = []
+    
+    for char in expression:
+        if char.isalnum():  # 操作数
+            output.append(char)
+        elif char == '(':  # 左括号
+            stack.push(char)
+        elif char == ')':  # 右括号
+            while not stack.is_empty() and stack.peek() != '(':
+                output.append(stack.pop())
+            stack.pop()  # 弹出左括号
+        else:  # 操作符
+            while (not stack.is_empty() and stack.peek() != '(' and
+                   precedence.get(stack.peek(), 0) >= precedence.get(char, 0)):
+                output.append(stack.pop())
+            stack.push(char)
+    
+    # 弹出栈中剩余的操作符
+    while not stack.is_empty():
+        output.append(stack.pop())
+    
+    return ''.join(output)
+
+# 3. 计算后缀表达式
+def evaluate_postfix(expression):
+    """计算后缀表达式"""
+    stack = DequeStack()
+    
+    for char in expression:
+        if char.isdigit():  # 操作数
+            stack.push(int(char))
+        else:  # 操作符
+            operand2 = stack.pop()
+            operand1 = stack.pop()
+            
+            if char == '+':
+                result = operand1 + operand2
+            elif char == '-':
+                result = operand1 - operand2
+            elif char == '*':
+                result = operand1 * operand2
+            elif char == '/':
+                result = operand1 / operand2
+            elif char == '^':
+                result = operand1 ** operand2
+            
+            stack.push(result)
+    
+    return stack.pop()
+
+# 4. 栈排序
+def sort_stack(stack):
+    """使用一个辅助栈对原栈进行排序（从栈底到栈顶递增）"""
+    temp_stack = DequeStack()
+    
+    while not stack.is_empty():
+        # 将原栈的元素弹出
+        temp = stack.pop()
+        
+        # 将辅助栈中比当前元素大的元素移回原栈
+        while not temp_stack.is_empty() and temp_stack.peek() > temp:
+            stack.push(temp_stack.pop())
+        
+        # 将当前元素压入辅助栈
+        temp_stack.push(temp)
+    
+    # 将辅助栈中的元素移回原栈
+    while not temp_stack.is_empty():
+        stack.push(temp_stack.pop())
+    
+    return stack
+
+# 5. 删除栈中所有特定元素
+def remove_elements(stack, value):
+    """删除栈中所有值为value的元素"""
+    temp_stack = DequeStack()
+    
+    # 将所有不是value的元素移到临时栈
+    while not stack.is_empty():
+        item = stack.pop()
+        if item != value:
+            temp_stack.push(item)
+    
+    # 将元素移回原栈
+    while not temp_stack.is_empty():
+        stack.push(temp_stack.pop())
+    
+    return stack
+
+# 6. 反转栈
+def reverse_stack(stack):
+    """反转栈"""
+    queue = deque()  # 使用队列作为辅助
+    
+    # 将栈中元素移到队列
+    while not stack.is_empty():
+        queue.append(stack.pop())
+    
+    # 将队列中元素移回栈
+    while queue:
+        stack.push(queue.popleft())
+    
+    return stack
+
+# 示例使用
+if __name__ == "__main__":
+    # 创建栈
+    stack = DequeStack()
+    print("栈是否为空:", stack.is_empty())  # True
+    
+    # 入栈操作
+    stack.push(1)
+    stack.push(2)
+    stack.push(3)
+    print("栈内容:", stack)  # [1, 2, 3]
+    print("栈大小:", stack.size())  # 3
+    print("栈顶元素:", stack.peek())  # 3
+    
+    # 出栈操作
+    item = stack.pop()
+    print("出栈元素:", item)  # 3
+    print("栈内容:", stack)  # [1, 2]
+    
+    # 括号匹配
+    expression = "{[()()]}"
+    print("括号是否匹配:", check_brackets(expression))  # True
+    
+    # 中缀转后缀
+    infix = "a+b*(c^d-e)^(f+g*h)-i"
+    postfix = infix_to_postfix(infix)
+    print("中缀表达式:", infix)
+    print("后缀表达式:", postfix)  # abcd^e-fgh*+^*+i-
+    
+    # 计算后缀表达式
+    postfix_expr = "231*+9-"
+    result = evaluate_postfix(postfix_expr)
+    print("后缀表达式 {} 的计算结果:".format(postfix_expr), result)  # -4
+    
+    # 栈排序
+    unsorted_stack = DequeStack()
+    for num in [3, 1, 4, 2, 5]:
+        unsorted_stack.push(num)
+    print("排序前:", unsorted_stack)  # [3, 1, 4, 2, 5]
+    sorted_stack = sort_stack(unsorted_stack)
+    print("排序后:", sorted_stack)  # [5, 4, 3, 2, 1]
+    
+    # 删除特定元素
+    stack_with_duplicates = DequeStack()
+    for num in [1, 2, 3, 2, 4, 2, 5]:
+        stack_with_duplicates.push(num)
+    print("删除前:", stack_with_duplicates)  # [1, 2, 3, 2, 4, 2, 5]
+    cleaned_stack = remove_elements(stack_with_duplicates, 2)
+    print("删除2后:", cleaned_stack)  # [1, 3, 4, 5]
+    
+    # 反转栈
+    stack_to_reverse = DequeStack()
+    for num in [1, 2, 3, 4, 5]:
+        stack_to_reverse.push(num)
+    print("反转前:", stack_to_reverse)  # [1, 2, 3, 4, 5]
+    reversed_stack = reverse_stack(stack_to_reverse)
+    print("反转后:", reversed_stack)  # [5, 4, 3, 2, 1]
+```
+
+---
