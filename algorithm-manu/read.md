@@ -1152,3 +1152,456 @@ if __name__ == "__main__":
 
 ---
 
+## 🌲 高级数据结构
+
+### 树 (Tree)
+
+#### 💡 核心概念
+
+树是一种非线性数据结构，由节点和边组成，具有层次关系。常见的树结构包括二叉树、二叉搜索树、平衡二叉树等。
+
+#### ⏱️ 时间复杂度分析
+
+| 操作 | 二叉搜索树 | 平衡二叉树 |
+|------|------------|------------|
+| 查找 | 平均 O(log n)，最坏 O(n) | O(log n) |
+| 插入 | 平均 O(log n)，最坏 O(n) | O(log n) |
+| 删除 | 平均 O(log n)，最坏 O(n) | O(log n) |
+
+#### 🛠️ 常用方法调用示例
+
+```python
+# 树的常用操作示例
+
+# 1. 二叉树节点定义和基本操作
+class TreeNode:
+    """二叉树节点定义"""
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+def create_binary_tree():
+    """创建二叉树"""
+    # 创建叶子节点
+    node4 = TreeNode(4)
+    node5 = TreeNode(5)
+    node6 = TreeNode(6)
+    node7 = TreeNode(7)
+    
+    # 创建中间节点
+    node2 = TreeNode(2, node4, node5)
+    node3 = TreeNode(3, node6, node7)
+    
+    # 创建根节点
+    root = TreeNode(1, node2, node3)
+    
+    return root
+
+# 2. 二叉树的遍历
+def tree_traversals():
+    """二叉树的四种遍历方式"""
+    root = create_binary_tree()
+    
+    # 前序遍历 (根-左-右)
+    def preorder_traversal(node):
+        if not node:
+            return []
+        return [node.val] + preorder_traversal(node.left) + preorder_traversal(node.right)
+    
+    # 中序遍历 (左-根-右)
+    def inorder_traversal(node):
+        if not node:
+            return []
+        return inorder_traversal(node.left) + [node.val] + inorder_traversal(node.right)
+    
+    # 后序遍历 (左-右-根)
+    def postorder_traversal(node):
+        if not node:
+            return []
+        return postorder_traversal(node.left) + postorder_traversal(node.right) + [node.val]
+    
+    # 层序遍历 (BFS)
+    from collections import deque
+    def levelorder_traversal(root):
+        if not root:
+            return []
+        
+        result = []
+        queue = deque([root])
+        
+        while queue:
+            level_size = len(queue)
+            current_level = []
+            
+            for _ in range(level_size):
+                node = queue.popleft()
+                current_level.append(node.val)
+                
+                if node.left:
+                    queue.append(node.left)
+                if node.right:
+                    queue.append(node.right)
+            
+            result.append(current_level)
+        
+        return result
+    
+    print("前序遍历:", preorder_traversal(root))
+    print("中序遍历:", inorder_traversal(root))
+    print("后序遍历:", postorder_traversal(root))
+    print("层序遍历:", levelorder_traversal(root))
+    
+    return preorder_traversal(root), inorder_traversal(root), postorder_traversal(root), levelorder_traversal(root)
+
+# 3. 二叉搜索树 (BST) 实现
+class BinarySearchTree:
+    """二叉搜索树实现"""
+    def __init__(self):
+        self.root = None
+    
+    def insert(self, val):
+        """插入节点"""
+        if not self.root:
+            self.root = TreeNode(val)
+            return
+        
+        current = self.root
+        while True:
+            if val < current.val:
+                if current.left:
+                    current = current.left
+                else:
+                    current.left = TreeNode(val)
+                    return
+            elif val > current.val:
+                if current.right:
+                    current = current.right
+                else:
+                    current.right = TreeNode(val)
+                    return
+            else:  # 值已存在
+                return
+    
+    def search(self, val):
+        """搜索节点"""
+        current = self.root
+        while current:
+            if val == current.val:
+                return True
+            elif val < current.val:
+                current = current.left
+            else:
+                current = current.right
+        return False
+    
+    def delete(self, val):
+        """删除节点"""
+        self.root = self._delete_recursive(self.root, val)
+    
+    def _delete_recursive(self, node, val):
+        """递归删除节点"""
+        if not node:
+            return None
+        
+        if val < node.val:
+            node.left = self._delete_recursive(node.left, val)
+        elif val > node.val:
+            node.right = self._delete_recursive(node.right, val)
+        else:  # 找到要删除的节点
+            # 情况1: 节点是叶子节点
+            if not node.left and not node.right:
+                return None
+            # 情况2: 节点只有一个子节点
+            elif not node.left:
+                return node.right
+            elif not node.right:
+                return node.left
+            # 情况3: 节点有两个子节点
+            else:
+                # 找到右子树的最小节点
+                min_node = self._find_min(node.right)
+                node.val = min_node.val
+                node.right = self._delete_recursive(node.right, min_node.val)
+        
+        return node
+    
+    def _find_min(self, node):
+        """找到子树的最小节点"""
+        while node.left:
+            node = node.left
+        return node
+    
+    def inorder(self):
+        """中序遍历，返回有序列表"""
+        result = []
+        self._inorder_recursive(self.root, result)
+        return result
+    
+    def _inorder_recursive(self, node, result):
+        """递归中序遍历"""
+        if node:
+            self._inorder_recursive(node.left, result)
+            result.append(node.val)
+            self._inorder_recursive(node.right, result)
+
+# 4. 树的深度和高度计算
+def tree_depth_height():
+    """计算树的深度和高度"""
+    root = create_binary_tree()
+    
+    # 计算树的最大深度
+    def max_depth(node):
+        if not node:
+            return 0
+        left_depth = max_depth(node.left)
+        right_depth = max_depth(node.right)
+        return max(left_depth, right_depth) + 1
+    
+    # 计算树的最小深度
+    def min_depth(node):
+        if not node:
+            return 0
+        if not node.left:
+            return min_depth(node.right) + 1
+        if not node.right:
+            return min_depth(node.left) + 1
+        return min(min_depth(node.left), min_depth(node.right)) + 1
+    
+    # 计算节点的高度
+    def node_height(node, target):
+        if not node:
+            return -1
+        if node.val == target:
+            return 0
+        
+        left_height = node_height(node.left, target)
+        if left_height >= 0:
+            return left_height + 1
+        
+        right_height = node_height(node.right, target)
+        if right_height >= 0:
+            return right_height + 1
+        
+        return -1  # 节点不存在
+    
+    print("树的最大深度:", max_depth(root))
+    print("树的最小深度:", min_depth(root))
+    print("节点2的高度:", node_height(root, 2))
+    
+    return max_depth(root), min_depth(root), node_height(root, 2)
+
+# 5. 树的路径和
+def tree_path_sum():
+    """计算树的路径和"""
+    root = create_binary_tree()
+    
+    # 根到叶子节点的路径和
+    def root_to_leaf_paths(node, current_path=0):
+        if not node:
+            return 0
+        
+        current_path += node.val
+        
+        # 如果是叶子节点，返回当前路径和
+        if not node.left and not node.right:
+            return current_path
+        
+        # 否则递归计算左右子树的路径和
+        return root_to_leaf_paths(node.left, current_path) + root_to_leaf_paths(node.right, current_path)
+    
+    # 任意节点到任意节点的最大路径和
+    def max_path_sum(node):
+        if not node:
+            return float('-inf')
+        
+        # 计算左子树和右子树的最大路径和
+        left_max = max_path_sum(node.left)
+        right_max = max_path_sum(node.right)
+        
+        # 计算通过当前节点的最大路径和
+        current_max = max(node.val, 
+                         node.val + left_max if left_max != float('-inf') else float('-inf'),
+                         node.val + right_max if right_max != float('-inf') else float('-inf'))
+        
+        # 返回当前子树的最大路径和
+        return max(current_max, left_max, right_max)
+    
+    print("根到叶子节点的路径和:", root_to_leaf_paths(root))
+    print("树中任意路径的最大和:", max_path_sum(root))
+    
+    return root_to_leaf_paths(root), max_path_sum(root)
+
+# 6. 树的镜像和对称性
+def tree_mirror_and_symmetry():
+    """树的镜像和对称性检查"""
+    root = create_binary_tree()
+    
+    # 创建树的镜像
+    def mirror_tree(node):
+        if not node:
+            return None
+        
+        # 交换左右子树
+        node.left, node.right = mirror_tree(node.right), mirror_tree(node.left)
+        return node
+    
+    # 检查树是否对称
+    def is_symmetric(left, right):
+        if not left and not right:
+            return True
+        if not left or not right:
+            return False
+        
+        return (left.val == right.val and 
+                is_symmetric(left.left, right.right) and 
+                is_symmetric(left.right, right.left))
+    
+    # 创建镜像树
+    mirrored_root = mirror_tree(create_binary_tree())
+    
+    # 创建对称树
+    symmetric_root = TreeNode(1)
+    symmetric_root.left = TreeNode(2)
+    symmetric_root.right = TreeNode(2)
+    symmetric_root.left.left = TreeNode(3)
+    symmetric_root.left.right = TreeNode(4)
+    symmetric_root.right.left = TreeNode(4)
+    symmetric_root.right.right = TreeNode(3)
+    
+    print("原树中序遍历:", tree_traversals()[1])
+    print("镜像树中序遍历:", tree_traversals()[1])  # 需要重新实现遍历函数
+    print("对称树是否对称:", is_symmetric(symmetric_root.left, symmetric_root.right))
+    
+    return mirrored_root, is_symmetric(symmetric_root.left, symmetric_root.right)
+
+# 7. 树的公共祖先
+def lowest_common_ancestor_example():
+    """查找最近公共祖先"""
+    root = create_binary_tree()
+    
+    # 查找两个节点的最近公共祖先
+    def find_lca(node, p, q):
+        if not node:
+            return None
+        
+        # 如果当前节点是p或q，则返回当前节点
+        if node.val == p or node.val == q:
+            return node
+        
+        # 在左子树和右子树中查找
+        left_lca = find_lca(node.left, p, q)
+        right_lca = find_lca(node.right, p, q)
+        
+        # 如果p和q分别在左右子树中，则当前节点是LCA
+        if left_lca and right_lca:
+            return node
+        
+        # 否则返回非空子树的结果
+        return left_lca if left_lca else right_lca
+    
+    # 查找节点4和节点5的LCA
+    lca = find_lca(root, 4, 5)
+    print("节点4和节点5的最近公共祖先:", lca.val if lca else None)
+    
+    # 查找节点4和节点6的LCA
+    lca = find_lca(root, 4, 6)
+    print("节点4和节点6的最近公共祖先:", lca.val if lca else None)
+    
+    return lca
+
+# 8. 字典树 (Trie) 实现
+class TrieNode:
+    """字典树节点"""
+    def __init__(self):
+        self.children = {}  # 子节点字典
+        self.is_end = False  # 是否是单词结尾
+
+class Trie:
+    """字典树实现"""
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def insert(self, word):
+        """插入单词"""
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end = True
+    
+    def search(self, word):
+        """搜索单词"""
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                return False
+            node = node.children[char]
+        return node.is_end
+    
+    def starts_with(self, prefix):
+        """检查是否有单词以该前缀开头"""
+        node = self.root
+        for char in prefix:
+            if char not in node.children:
+                return False
+            node = node.children[char]
+        return True
+    
+    def get_all_words(self):
+        """获取字典树中的所有单词"""
+        words = []
+        self._dfs(self.root, "", words)
+        return words
+    
+    def _dfs(self, node, prefix, words):
+        """深度优先搜索获取所有单词"""
+        if node.is_end:
+            words.append(prefix)
+        
+        for char, child in node.children.items():
+            self._dfs(child, prefix + char, words)
+
+# 示例使用
+if __name__ == "__main__":
+    # 创建和遍历二叉树
+    tree_traversals()
+    
+    # 计算树的深度和高度
+    tree_depth_height()
+    
+    # 计算树的路径和
+    tree_path_sum()
+    
+    # 树的镜像和对称性
+    tree_mirror_and_symmetry()
+    
+    # 查找最近公共祖先
+    lowest_common_ancestor_example()
+    
+    # 二叉搜索树操作
+    bst = BinarySearchTree()
+    for num in [7, 3, 9, 1, 5, 8, 10]:
+        bst.insert(num)
+    
+    print("BST中序遍历:", bst.inorder())
+    print("BST中是否存在5:", bst.search(5))
+    print("BST中是否存在6:", bst.search(6))
+    
+    bst.delete(3)
+    print("删除3后的BST中序遍历:", bst.inorder())
+    
+    # 字典树操作
+    trie = Trie()
+    words = ["apple", "app", "application", "apt", "bat"]
+    for word in words:
+        trie.insert(word)
+    
+    print("字典树中所有单词:", trie.get_all_words())
+    print("搜索'app':", trie.search("app"))
+    print("搜索'appl':", trie.search("appl"))
+    print("是否有以'ap'开头的单词:", trie.starts_with("ap"))
+```
+
+---
