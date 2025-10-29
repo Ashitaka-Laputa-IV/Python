@@ -837,3 +837,318 @@ if __name__ == "__main__":
 ```
 
 ---
+
+### 哈希表 (Hash Table)
+
+#### 💡 核心概念
+
+哈希表是通过键(key)的哈希值来映射到存储位置的数据结构。在 Python 中，字典(dict)和集合(set)都是基于哈希表实现的。
+
+#### ⏱️ 时间复杂度分析
+
+| 操作 | 时间复杂度 | 说明 |
+|------|------------|------|
+| 插入元素 | 平均 O(1)，最坏 O(n) | 哈希冲突时可能退化为链表 |
+| 删除元素 | 平均 O(1)，最坏 O(n) | 哈希冲突时可能退化为链表 |
+| 查找元素 | 平均 O(1)，最坏 O(n) | 哈希冲突时可能退化为链表 |
+| 获取所有键/值 | O(n) | 需要遍历整个哈希表 |
+
+#### 🛠️ 常用方法调用示例
+
+```python
+# Python字典(dict)常用操作示例
+
+# 1. 创建字典
+def create_dictionaries():
+    """创建字典的不同方式"""
+    # 空字典
+    empty_dict = {}
+    
+    # 使用字面量创建
+    person = {"name": "Alice", "age": 30, "city": "New York"}
+    
+    # 使用dict()构造函数
+    student = dict(name="Bob", age=20, major="Computer Science")
+    
+    # 从键值对列表创建
+    employee = dict([("id", 1001), ("position", "Developer"), ("salary", 80000)])
+    
+    # 从字典创建副本
+    person_copy = person.copy()
+    
+    return empty_dict, person, student, employee, person_copy
+
+# 2. 访问和修改字典
+def access_and_modify():
+    """访问和修改字典元素"""
+    book = {"title": "Python Programming", "author": "John Doe", "price": 49.99}
+    
+    # 访问元素
+    print("书名:", book["title"])  # 直接访问，如果键不存在会抛出KeyError
+    print("作者:", book.get("author", "Unknown"))  # 使用get()，可以设置默认值
+    
+    # 修改元素
+    book["price"] = 39.99  # 直接修改
+    print("修改后的价格:", book["price"])
+    
+    # 添加元素
+    book["publisher"] = "Tech Books"
+    print("添加出版社后:", book)
+    
+    # 更新多个键值对
+    book.update({"pages": 300, "year": 2023})
+    print("更新多个键值对后:", book)
+    
+    return book
+
+# 3. 删除字典元素
+def delete_elements():
+    """删除字典元素"""
+    inventory = {"apple": 10, "banana": 15, "orange": 8, "grape": 12}
+    print("原始库存:", inventory)
+    
+    # 删除指定键
+    removed_count = inventory.pop("banana", 0)  # 删除并返回值，可以设置默认值
+    print("删除香蕉数量:", removed_count)
+    print("删除后库存:", inventory)
+    
+    # 删除并返回最后一个键值对（Python 3.7+）
+    last_item = inventory.popitem()
+    print("删除的最后一项:", last_item)
+    print("删除后库存:", inventory)
+    
+    # 使用del删除
+    del inventory["apple"]
+    print("使用del删除苹果后:", inventory)
+    
+    # 清空字典
+    inventory.clear()
+    print("清空后:", inventory)
+    
+    return inventory
+
+# 4. 字典遍历
+def iterate_dictionary():
+    """遍历字典的不同方式"""
+    grades = {"Alice": 90, "Bob": 85, "Charlie": 92, "David": 88}
+    
+    # 遍历键
+    print("遍历键:")
+    for name in grades.keys():
+        print(f"  {name}")
+    
+    # 遍历值
+    print("\n遍历值:")
+    for score in grades.values():
+        print(f"  {score}")
+    
+    # 遍历键值对
+    print("\n遍历键值对:")
+    for name, score in grades.items():
+        print(f"  {name}: {score}")
+    
+    return grades
+
+# 5. 字典推导式
+def dictionary_comprehensions():
+    """字典推导式示例"""
+    numbers = [1, 2, 3, 4, 5]
+    
+    # 创建平方字典
+    squares = {num: num**2 for num in numbers}
+    print("平方字典:", squares)
+    
+    # 条件筛选
+    even_squares = {num: num**2 for num in numbers if num % 2 == 0}
+    print("偶数平方字典:", even_squares)
+    
+    # 字符串操作
+    words = ["hello", "world", "python", "programming"]
+    word_lengths = {word: len(word) for word in words}
+    print("单词长度字典:", word_lengths)
+    
+    return squares, even_squares, word_lengths
+
+# 6. 字典的高级应用
+def advanced_dictionary_operations():
+    """字典的高级应用"""
+    # 嵌套字典
+    employees = {
+        1001: {"name": "Alice", "department": "HR", "skills": ["communication", "recruitment"]},
+        1002: {"name": "Bob", "department": "IT", "skills": ["programming", "networking"]},
+        1003: {"name": "Charlie", "department": "Finance", "skills": ["accounting", "analysis"]}
+    }
+    
+    # 访问嵌套字典
+    print("员工1002的技能:", employees[1002]["skills"])
+    
+    # 添加新员工
+    employees[1004] = {"name": "David", "department": "Marketing", "skills": ["advertising", "sales"]}
+    
+    # 字典排序
+    sorted_by_name = {emp_id: emp_data for emp_id, emp_data in sorted(employees.items(), key=lambda x: x[1]["name"])}
+    print("按姓名排序的员工字典:")
+    for emp_id, emp_data in sorted_by_name.items():
+        print(f"  {emp_id}: {emp_data['name']} - {emp_data['department']}")
+    
+    # 字典合并（Python 3.9+）
+    dict1 = {"a": 1, "b": 2}
+    dict2 = {"c": 3, "d": 4}
+    merged_dict = dict1 | dict2  # 合并运算符
+    print("合并后的字典:", merged_dict)
+    
+    return employees, merged_dict
+
+# 7. 集合(set)常用操作
+def set_operations():
+    """集合常用操作"""
+    # 创建集合
+    set1 = {1, 2, 3, 4, 5}
+    set2 = {4, 5, 6, 7, 8}
+    
+    # 添加元素
+    set1.add(6)
+    print("添加6后的set1:", set1)
+    
+    # 删除元素
+    set1.discard(1)  # 如果元素不存在，不会抛出异常
+    print("删除1后的set1:", set1)
+    
+    # 集合运算
+    print("set1:", set1)
+    print("set2:", set2)
+    print("并集:", set1.union(set2))  # 或 set1 | set2
+    print("交集:", set1.intersection(set2))  # 或 set1 & set2
+    print("差集:", set1.difference(set2))  # 或 set1 - set2
+    print("对称差集:", set1.symmetric_difference(set2))  # 或 set1 ^ set2
+    
+    # 子集和超集
+    subset = {2, 3}
+    print(f"{subset}是{set1}的子集:", subset.issubset(set1))
+    print(f"{set1}是{subset}的超集:", set1.issuperset(subset))
+    
+    # 列表去重
+    numbers = [1, 2, 3, 2, 4, 5, 3, 6, 1]
+    unique_numbers = list(set(numbers))
+    print("去重后的列表:", unique_numbers)
+    
+    return set1, set2, unique_numbers
+
+# 8. 自定义哈希表实现
+class HashTable:
+    """简单的哈希表实现"""
+    def __init__(self, size=10):
+        self.size = size
+        self.table = [[] for _ in range(size)]  # 使用链地址法处理冲突
+    
+    def _hash_function(self, key):
+        """简单的哈希函数"""
+        return hash(key) % self.size
+    
+    def set(self, key, value):
+        """设置键值对"""
+        index = self._hash_function(key)
+        
+        # 查找键是否已存在
+        for i, (k, v) in enumerate(self.table[index]):
+            if k == key:
+                self.table[index][i] = (key, value)  # 更新值
+                return
+        
+        # 键不存在，添加新键值对
+        self.table[index].append((key, value))
+    
+    def get(self, key):
+        """获取键对应的值"""
+        index = self._hash_function(key)
+        
+        for k, v in self.table[index]:
+            if k == key:
+                return v
+        
+        return None  # 键不存在
+    
+    def delete(self, key):
+        """删除键值对"""
+        index = self._hash_function(key)
+        
+        for i, (k, v) in enumerate(self.table[index]):
+            if k == key:
+                del self.table[index][i]
+                return True
+        
+        return False  # 键不存在
+    
+    def keys(self):
+        """获取所有键"""
+        keys = []
+        for bucket in self.table:
+            for k, _ in bucket:
+                keys.append(k)
+        return keys
+    
+    def values(self):
+        """获取所有值"""
+        values = []
+        for bucket in self.table:
+            for _, v in bucket:
+                values.append(v)
+        return values
+    
+    def items(self):
+        """获取所有键值对"""
+        items = []
+        for bucket in self.table:
+            items.extend(bucket)
+        return items
+    
+    def __str__(self):
+        return str(self.items())
+
+# 示例使用
+if __name__ == "__main__":
+    # 创建字典
+    empty_dict, person, student, employee, person_copy = create_dictionaries()
+    print("空字典:", empty_dict)
+    print("人员字典:", person)
+    print("学生字典:", student)
+    print("员工字典:", employee)
+    print("人员字典副本:", person_copy)
+    
+    # 访问和修改
+    book = access_and_modify()
+    
+    # 删除元素
+    delete_elements()
+    
+    # 遍历字典
+    iterate_dictionary()
+    
+    # 字典推导式
+    dictionary_comprehensions()
+    
+    # 高级操作
+    advanced_dictionary_operations()
+    
+    # 集合操作
+    set_operations()
+    
+    # 自定义哈希表
+    custom_hash = HashTable()
+    custom_hash.set("name", "Alice")
+    custom_hash.set("age", 30)
+    custom_hash.set("city", "New York")
+    custom_hash.set("name", "Bob")  # 更新值
+    
+    print("自定义哈希表:", custom_hash)
+    print("获取name:", custom_hash.get("name"))
+    print("获取age:", custom_hash.get("age"))
+    print("所有键:", custom_hash.keys())
+    print("所有值:", custom_hash.values())
+    
+    custom_hash.delete("city")
+    print("删除city后:", custom_hash)
+```
+
+---
+
