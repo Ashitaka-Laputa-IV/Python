@@ -407,3 +407,433 @@ if __name__ == "__main__":
 ```
 
 ---
+
+### 队列 (Queue)
+
+#### 💡 核心概念
+
+队列是一种先进先出(FIFO)的数据结构。在 Python 中，可以使用 collections.deque 实现高效的队列。
+
+#### ⏱️ 时间复杂度分析
+
+| 操作 | 时间复杂度 | 说明 |
+|------|------------|------|
+| 入队(enqueue) | O(1) | 在队尾添加元素 |
+| 出队(dequeue) | O(1) | 从队首移除元素 |
+| 查看队首元素 | O(1) | 获取队首元素但不移除 |
+| 判断队列是否为空 | O(1) | 检查队列是否为空 |
+
+#### 🛠️ 常用方法调用示例
+
+```python
+from collections import deque
+import queue
+import threading
+import time
+
+# 基于collections.deque的队列实现（推荐）
+class DequeQueue:
+    """基于collections.deque的队列实现（推荐）"""
+    def __init__(self):
+        self.items = deque()
+    
+    def is_empty(self):
+        """检查队列是否为空"""
+        return len(self.items) == 0
+    
+    def enqueue(self, item):
+        """入队"""
+        self.items.append(item)
+    
+    def dequeue(self):
+        """出队"""
+        if self.is_empty():
+            raise IndexError("dequeue from empty queue")
+        return self.items.popleft()
+    
+    def peek(self):
+        """查看队首元素"""
+        if self.is_empty():
+            raise IndexError("peek from empty queue")
+        return self.items[0]
+    
+    def size(self):
+        """获取队列大小"""
+        return len(self.items)
+    
+    def __str__(self):
+        return str(list(self.items))
+
+# 基于queue.Queue的线程安全队列
+class ThreadSafeQueue:
+    """基于queue.Queue的线程安全队列"""
+    def __init__(self, maxsize=0):
+        self.queue = queue.Queue(maxsize)
+    
+    def is_empty(self):
+        """检查队列是否为空"""
+        return self.queue.empty()
+    
+    def enqueue(self, item, block=True, timeout=None):
+        """入队"""
+        self.queue.put(item, block=block, timeout=timeout)
+    
+    def dequeue(self, block=True, timeout=None):
+        """出队"""
+        return self.queue.get(block=block, timeout=timeout)
+    
+    def peek(self):
+        """查看队首元素（非阻塞）"""
+        try:
+            return self.queue.queue[0]
+        except IndexError:
+            raise IndexError("peek from empty queue")
+    
+    def size(self):
+        """获取队列大小"""
+        return self.queue.qsize()
+    
+    def task_done(self):
+        """标记任务完成"""
+        self.queue.task_done()
+    
+    def join(self):
+        """等待所有任务完成"""
+        self.queue.join()
+    
+    def __str__(self):
+        return str(list(self.queue.queue))
+
+# 基于列表的队列实现（不推荐，出队操作效率低）
+class ListQueue:
+    """基于列表的队列实现（不推荐，出队操作效率低）"""
+    def __init__(self):
+        self.items = []
+    
+    def is_empty(self):
+        """检查队列是否为空"""
+        return len(self.items) == 0
+    
+    def enqueue(self, item):
+        """入队"""
+        self.items.append(item)
+    
+    def dequeue(self):
+        """出队"""
+        if self.is_empty():
+            raise IndexError("dequeue from empty queue")
+        return self.items.pop(0)  # O(n)操作，效率低
+    
+    def peek(self):
+        """查看队首元素"""
+        if self.is_empty():
+            raise IndexError("peek from empty queue")
+        return self.items[0]
+    
+    def size(self):
+        """获取队列大小"""
+        return len(self.items)
+    
+    def __str__(self):
+        return str(self.items)
+
+# 循环队列实现
+class CircularQueue:
+    """循环队列实现"""
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.items = [None] * capacity
+        self.front = 0
+        self.rear = 0
+        self.count = 0
+    
+    def is_empty(self):
+        """检查队列是否为空"""
+        return self.count == 0
+    
+    def is_full(self):
+        """检查队列是否已满"""
+        return self.count == self.capacity
+    
+    def enqueue(self, item):
+        """入队"""
+        if self.is_full():
+            raise Exception("Queue is full")
+        
+        self.items[self.rear] = item
+        self.rear = (self.rear + 1) % self.capacity
+        self.count += 1
+    
+    def dequeue(self):
+        """出队"""
+        if self.is_empty():
+            raise Exception("Queue is empty")
+        
+        item = self.items[self.front]
+        self.items[self.front] = None
+        self.front = (self.front + 1) % self.capacity
+        self.count -= 1
+        return item
+    
+    def peek(self):
+        """查看队首元素"""
+        if self.is_empty():
+            raise Exception("Queue is empty")
+        return self.items[self.front]
+    
+    def size(self):
+        """获取队列大小"""
+        return self.count
+    
+    def __str__(self):
+        if self.is_empty():
+            return "[]"
+        
+        result = []
+        index = self.front
+        for _ in range(self.count):
+            result.append(str(self.items[index]))
+            index = (index + 1) % self.capacity
+        
+        return "[" + ", ".join(result) + "]"
+
+# 队列的应用示例
+
+# 1. 约瑟夫问题
+def josephus_problem(n, k):
+    """约瑟夫问题：n个人围成一圈，从第一个人开始报数，数到k的人出列"""
+    q = DequeQueue()
+    
+    # 初始化队列
+    for i in range(1, n + 1):
+        q.enqueue(i)
+    
+    result = []
+    while not q.is_empty():
+        # 将前k-1个人移到队尾
+        for _ in range(k - 1):
+            q.enqueue(q.dequeue())
+        
+        # 第k个人出列
+        result.append(q.dequeue())
+    
+    return result
+
+# 2. 任务调度器
+def task_scheduler(tasks, cooldown):
+    """任务调度器：相同任务之间至少需要cooldown个时间单位"""
+    from collections import defaultdict, deque
+    
+    task_count = defaultdict(int)
+    for task in tasks:
+        task_count[task] += 1
+    
+    # 按任务数量排序
+    sorted_tasks = sorted(task_count.items(), key=lambda x: x[1], reverse=True)
+    
+    # 使用队列模拟时间线
+    time = 0
+    task_queue = deque()
+    
+    # 初始化任务队列
+    for task, count in sorted_tasks:
+        task_queue.append((task, count, 0))  # (任务, 剩余次数, 可执行时间)
+    
+    while task_queue:
+        time += 1
+        
+        # 检查队首任务是否可以执行
+        if task_queue[0][2] <= time:
+            task, count, _ = task_queue.popleft()
+            count -= 1
+            
+            if count > 0:
+                # 任务还有剩余，加入队列尾部，设置冷却时间
+                task_queue.append((task, count, time + cooldown))
+    
+    return time
+
+# 3. 二叉树的层序遍历（使用队列）
+class TreeNode:
+    """二叉树节点定义"""
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+def level_order_traversal(root):
+    """二叉树的层序遍历"""
+    if not root:
+        return []
+    
+    result = []
+    q = DequeQueue()
+    q.enqueue(root)
+    
+    while not q.is_empty():
+        level_size = q.size()
+        current_level = []
+        
+        for _ in range(level_size):
+            node = q.dequeue()
+            current_level.append(node.val)
+            
+            if node.left:
+                q.enqueue(node.left)
+            if node.right:
+                q.enqueue(node.right)
+        
+        result.append(current_level)
+    
+    return result
+
+# 4. 生产者-消费者模型
+def producer_consumer_example():
+    """生产者-消费者模型示例"""
+    buffer = ThreadSafeQueue(maxsize=5)  # 缓冲区大小为5
+    
+    def producer():
+        """生产者线程"""
+        for i in range(10):
+            item = f"Item-{i}"
+            buffer.enqueue(item)
+            print(f"生产: {item}")
+            time.sleep(0.1)  # 模拟生产时间
+    
+    def consumer():
+        """消费者线程"""
+        for _ in range(10):
+            item = buffer.dequeue()
+            print(f"消费: {item}")
+            time.sleep(0.2)  # 模拟消费时间
+    
+    # 创建并启动线程
+    producer_thread = threading.Thread(target=producer)
+    consumer_thread = threading.Thread(target=consumer)
+    
+    producer_thread.start()
+    consumer_thread.start()
+    
+    # 等待线程完成
+    producer_thread.join()
+    consumer_thread.join()
+
+# 5. 队列排序
+def sort_queue(q):
+    """使用递归对队列进行排序（升序）"""
+    if q.is_empty():
+        return q
+    
+    # 获取队首元素
+    temp = q.dequeue()
+    
+    # 递归排序剩余队列
+    sort_queue(q)
+    
+    # 将元素插入到正确位置
+    insert_sorted(q, temp)
+    return q
+
+def insert_sorted(q, item):
+    """将元素插入到已排序队列的正确位置"""
+    # 如果队列为空或队首元素大于等于待插入元素，直接入队
+    if q.is_empty() or q.peek() >= item:
+        q.enqueue(item)
+        return
+    
+    # 否则，递归处理
+    temp = q.dequeue()
+    insert_sorted(q, item)
+    q.enqueue(temp)
+
+# 6. 队列反转
+def reverse_queue(q):
+    """反转队列"""
+    if q.is_empty():
+        return q
+    
+    # 获取队首元素
+    temp = q.dequeue()
+    
+    # 递归反转剩余队列
+    reverse_queue(q)
+    
+    # 将元素入队
+    q.enqueue(temp)
+    return q
+
+# 示例使用
+if __name__ == "__main__":
+    # 创建队列
+    q = DequeQueue()
+    print("队列是否为空:", q.is_empty())  # True
+    
+    # 入队操作
+    q.enqueue(1)
+    q.enqueue(2)
+    q.enqueue(3)
+    print("队列内容:", q)  # [1, 2, 3]
+    print("队列大小:", q.size())  # 3
+    print("队首元素:", q.peek())  # 1
+    
+    # 出队操作
+    item = q.dequeue()
+    print("出队元素:", item)  # 1
+    print("队列内容:", q)  # [2, 3]
+    
+    # 约瑟夫问题
+    result = josephus_problem(7, 3)
+    print("约瑟夫问题结果:", result)  # [3, 6, 2, 7, 5, 1, 4]
+    
+    # 任务调度器
+    tasks = ["A", "A", "A", "B", "B", "B"]
+    min_time = task_scheduler(tasks, 2)
+    print("任务调度最短时间:", min_time)  # 8
+    
+    # 二叉树层序遍历
+    # 构建二叉树
+    #       1
+    #      / \
+    #     2   3
+    #    / \   \
+    #   4   5   6
+    root = TreeNode(1)
+    root.left = TreeNode(2)
+    root.right = TreeNode(3)
+    root.left.left = TreeNode(4)
+    root.left.right = TreeNode(5)
+    root.right.right = TreeNode(6)
+    
+    traversal = level_order_traversal(root)
+    print("二叉树层序遍历:", traversal)  # [[1], [2, 3], [4, 5, 6]]
+    
+    # 循环队列
+    circular_q = CircularQueue(5)
+    for i in range(1, 6):
+        circular_q.enqueue(i)
+    print("循环队列:", circular_q)  # [1, 2, 3, 4, 5]
+    
+    circular_q.dequeue()
+    circular_q.dequeue()
+    circular_q.enqueue(6)
+    circular_q.enqueue(7)
+    print("循环队列操作后:", circular_q)  # [3, 4, 5, 6, 7]
+    
+    # 队列排序
+    unsorted_q = DequeQueue()
+    for num in [3, 1, 4, 2, 5]:
+        unsorted_q.enqueue(num)
+    print("排序前:", unsorted_q)  # [3, 1, 4, 2, 5]
+    sorted_q = sort_queue(unsorted_q)
+    print("排序后:", sorted_q)  # [1, 2, 3, 4, 5]
+    
+    # 队列反转
+    reverse_test_q = DequeQueue()
+    for num in [1, 2, 3, 4, 5]:
+        reverse_test_q.enqueue(num)
+    print("反转前:", reverse_test_q)  # [1, 2, 3, 4, 5]
+    reversed_q = reverse_queue(reverse_test_q)
+    print("反转后:", reversed_q)  # [5, 4, 3, 2, 1]
+```
+
+---
