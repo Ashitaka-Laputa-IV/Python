@@ -1605,3 +1605,475 @@ if __name__ == "__main__":
 ```
 
 ---
+
+### 图 (Graph)
+
+#### 💡 核心概念
+
+图是由顶点和边组成的数据结构，分为有向图和无向图。常见的表示方法有邻接矩阵和邻接表。
+
+#### ⏱️ 时间复杂度分析
+
+| 操作 | 邻接矩阵 | 邻接表 |
+|------|----------|--------|
+| 添加边 | O(1) | O(1) |
+| 删除边 | O(1) | O(E) |
+| 查找边 | O(1) | O(V) |
+| 遍历所有邻接点 | O(V) | O(E/V) |
+
+#### 🛠️ 常用方法调用示例
+
+```python
+# 图的常用操作示例
+
+from collections import deque, defaultdict
+import heapq
+
+# 1. 图的表示方法
+def graph_representation():
+    """图的表示方法示例"""
+    # 邻接表表示
+    adjacency_list = {
+        'A': ['B', 'C'],
+        'B': ['A', 'D', 'E'],
+        'C': ['A', 'F'],
+        'D': ['B'],
+        'E': ['B', 'F'],
+        'F': ['C', 'E']
+    }
+    
+    # 邻接矩阵表示
+    vertices = ['A', 'B', 'C', 'D', 'E', 'F']
+    adjacency_matrix = [
+        [0, 1, 1, 0, 0, 0],  # A
+        [1, 0, 0, 1, 1, 0],  # B
+        [1, 0, 0, 0, 0, 1],  # C
+        [0, 1, 0, 0, 0, 0],  # D
+        [0, 1, 0, 0, 0, 1],  # E
+        [0, 0, 1, 0, 1, 0]   # F
+    ]
+    
+    # 边列表表示
+    edge_list = [
+        ('A', 'B'), ('A', 'C'),
+        ('B', 'D'), ('B', 'E'),
+        ('C', 'F'), ('E', 'F')
+    ]
+    
+    print("邻接表表示:", adjacency_list)
+    print("邻接矩阵表示:", adjacency_matrix)
+    print("边列表表示:", edge_list)
+    
+    return adjacency_list, adjacency_matrix, edge_list
+
+# 2. 图的基本操作
+class Graph:
+    """图的基本操作类"""
+    def __init__(self, directed=False):
+        self.adjacency_list = defaultdict(list)
+        self.directed = directed
+    
+    def add_edge(self, u, v):
+        """添加边"""
+        self.adjacency_list[u].append(v)
+        if not self.directed:
+            self.adjacency_list[v].append(u)
+    
+    def remove_edge(self, u, v):
+        """删除边"""
+        if v in self.adjacency_list[u]:
+            self.adjacency_list[u].remove(v)
+        if not self.directed and u in self.adjacency_list[v]:
+            self.adjacency_list[v].remove(u)
+    
+    def has_edge(self, u, v):
+        """检查边是否存在"""
+        return v in self.adjacency_list[u]
+    
+    def get_vertices(self):
+        """获取所有顶点"""
+        return list(self.adjacency_list.keys())
+    
+    def get_neighbors(self, v):
+        """获取顶点的所有邻居"""
+        return self.adjacency_list[v]
+    
+    def degree(self, v):
+        """获取顶点的度"""
+        return len(self.adjacency_list[v])
+    
+    def __str__(self):
+        result = ""
+        for vertex in self.adjacency_list:
+            result += f"{vertex}: {self.adjacency_list[vertex]}\n"
+        return result
+
+def graph_operations_example():
+    """图的基本操作示例"""
+    # 创建无向图
+    g = Graph(directed=False)
+    
+    # 添加边
+    g.add_edge('A', 'B')
+    g.add_edge('A', 'C')
+    g.add_edge('B', 'D')
+    g.add_edge('B', 'E')
+    g.add_edge('C', 'F')
+    g.add_edge('E', 'F')
+    
+    print("无向图:")
+    print(g)
+    
+    # 检查边
+    print("边 A-B 是否存在:", g.has_edge('A', 'B'))
+    print("边 A-D 是否存在:", g.has_edge('A', 'D'))
+    
+    # 获取顶点和邻居
+    print("所有顶点:", g.get_vertices())
+    print("顶点B的邻居:", g.get_neighbors('B'))
+    print("顶点B的度:", g.degree('B'))
+    
+    # 删除边
+    g.remove_edge('A', 'C')
+    print("\n删除边 A-C 后:")
+    print(g)
+    
+    return g
+
+# 3. 深度优先搜索 (DFS) 实现
+def dfs_traversal(graph, start):
+    """深度优先搜索遍历"""
+    visited = set()
+    result = []
+    
+    def dfs(node):
+        if node in visited:
+            return
+        
+        visited.add(node)
+        result.append(node)
+        
+        for neighbor in graph.get_neighbors(node):
+            dfs(neighbor)
+    
+    dfs(start)
+    return result
+
+def dfs_example():
+    """DFS示例"""
+    g = Graph()
+    g.add_edge('A', 'B')
+    g.add_edge('A', 'C')
+    g.add_edge('B', 'D')
+    g.add_edge('B', 'E')
+    g.add_edge('C', 'F')
+    g.add_edge('E', 'F')
+    
+    print("从顶点A开始的DFS遍历:", dfs_traversal(g, 'A'))
+    return dfs_traversal(g, 'A')
+
+# 4. 广度优先搜索 (BFS) 实现
+def bfs_traversal(graph, start):
+    """广度优先搜索遍历"""
+    visited = set([start])
+    queue = deque([start])
+    result = []
+    
+    while queue:
+        node = queue.popleft()
+        result.append(node)
+        
+        for neighbor in graph.get_neighbors(node):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+    
+    return result
+
+def bfs_example():
+    """BFS示例"""
+    g = Graph()
+    g.add_edge('A', 'B')
+    g.add_edge('A', 'C')
+    g.add_edge('B', 'D')
+    g.add_edge('B', 'E')
+    g.add_edge('C', 'F')
+    g.add_edge('E', 'F')
+    
+    print("从顶点A开始的BFS遍历:", bfs_traversal(g, 'A'))
+    return bfs_traversal(g, 'A')
+
+# 5. 检测图中是否有环
+def has_cycle(graph):
+    """检测图中是否有环（无向图）"""
+    visited = set()
+    
+    def dfs(node, parent):
+        visited.add(node)
+        
+        for neighbor in graph.get_neighbors(node):
+            if neighbor not in visited:
+                if dfs(neighbor, node):
+                    return True
+            elif neighbor != parent:
+                return True
+        
+        return False
+    
+    # 检查所有连通分量
+    for vertex in graph.get_vertices():
+        if vertex not in visited:
+            if dfs(vertex, None):
+                return True
+    
+    return False
+
+def cycle_detection_example():
+    """环检测示例"""
+    # 有环图
+    g_with_cycle = Graph()
+    g_with_cycle.add_edge('A', 'B')
+    g_with_cycle.add_edge('B', 'C')
+    g_with_cycle.add_edge('C', 'D')
+    g_with_cycle.add_edge('D', 'A')  # 形成环
+    
+    print("有环图是否有环:", has_cycle(g_with_cycle))
+    
+    # 无环图
+    g_without_cycle = Graph()
+    g_without_cycle.add_edge('A', 'B')
+    g_without_cycle.add_edge('B', 'C')
+    g_without_cycle.add_edge('C', 'D')
+    
+    print("无环图是否有环:", has_cycle(g_without_cycle))
+    
+    return has_cycle(g_with_cycle), has_cycle(g_without_cycle)
+
+# 6. 拓扑排序
+def topological_sort(graph):
+    """拓扑排序（Kahn算法）"""
+    # 计算所有顶点的入度
+    in_degree = {vertex: 0 for vertex in graph.get_vertices()}
+    
+    for vertex in graph.get_vertices():
+        for neighbor in graph.get_neighbors(vertex):
+            in_degree[neighbor] += 1
+    
+    # 找到所有入度为0的顶点
+    queue = deque([vertex for vertex, degree in in_degree.items() if degree == 0])
+    result = []
+    
+    while queue:
+        vertex = queue.popleft()
+        result.append(vertex)
+        
+        # 减少邻居的入度
+        for neighbor in graph.get_neighbors(vertex):
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+    
+    # 如果结果包含所有顶点，则存在拓扑排序
+    if len(result) == len(graph.get_vertices()):
+        return result
+    else:
+        return None  # 图中有环
+
+def topological_sort_example():
+    """拓扑排序示例"""
+    # 创建有向无环图
+    dag = Graph(directed=True)
+    dag.add_edge('A', 'B')
+    dag.add_edge('A', 'C')
+    dag.add_edge('B', 'D')
+    dag.add_edge('C', 'D')
+    dag.add_edge('D', 'E')
+    
+    print("有向无环图的拓扑排序:", topological_sort(dag))
+    
+    # 创建有环图
+    cyclic_graph = Graph(directed=True)
+    cyclic_graph.add_edge('A', 'B')
+    cyclic_graph.add_edge('B', 'C')
+    cyclic_graph.add_edge('C', 'A')  # 形成环
+    
+    print("有环图的拓扑排序:", topological_sort(cyclic_graph))
+    
+    return topological_sort(dag), topological_sort(cyclic_graph)
+
+# 7. 最短路径算法 (Dijkstra)
+def dijkstra_shortest_path(graph, start):
+    """Dijkstra最短路径算法"""
+    distances = {vertex: float('inf') for vertex in graph.get_vertices()}
+    distances[start] = 0
+    
+    # 优先队列存储(距离, 顶点)
+    priority_queue = [(0, start)]
+    previous = {vertex: None for vertex in graph.get_vertices()}
+    
+    while priority_queue:
+        current_distance, current_vertex = heapq.heappop(priority_queue)
+        
+        # 如果当前距离大于已知距离，跳过
+        if current_distance > distances[current_vertex]:
+            continue
+        
+        # 更新邻居的距离
+        for neighbor in graph.get_neighbors(current_vertex):
+            # 假设所有边的权重为1
+            distance = current_distance + 1
+            
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                previous[neighbor] = current_vertex
+                heapq.heappush(priority_queue, (distance, neighbor))
+    
+    return distances, previous
+
+def shortest_path_example():
+    """最短路径示例"""
+    g = Graph()
+    g.add_edge('A', 'B')
+    g.add_edge('A', 'C')
+    g.add_edge('B', 'D')
+    g.add_edge('B', 'E')
+    g.add_edge('C', 'F')
+    g.add_edge('E', 'F')
+    g.add_edge('D', 'G')
+    g.add_edge('F', 'G')
+    
+    distances, previous = dijkstra_shortest_path(g, 'A')
+    
+    print("从A到各顶点的最短距离:", distances)
+    print("最短路径的前驱节点:", previous)
+    
+    # 重建从A到G的最短路径
+    path = []
+    current = 'G'
+    while current is not None:
+        path.append(current)
+        current = previous[current]
+    path.reverse()
+    
+    print("从A到G的最短路径:", path)
+    
+    return distances, previous, path
+
+# 8. 连通分量
+def connected_components(graph):
+    """找出图的所有连通分量"""
+    visited = set()
+    components = []
+    
+    def dfs(node, component):
+        visited.add(node)
+        component.append(node)
+        
+        for neighbor in graph.get_neighbors(node):
+            if neighbor not in visited:
+                dfs(neighbor, component)
+    
+    for vertex in graph.get_vertices():
+        if vertex not in visited:
+            component = []
+            dfs(vertex, component)
+            components.append(component)
+    
+    return components
+
+def connected_components_example():
+    """连通分量示例"""
+    g = Graph()
+    g.add_edge('A', 'B')
+    g.add_edge('B', 'C')
+    g.add_edge('D', 'E')
+    g.add_edge('F', 'G')
+    g.add_edge('G', 'H')
+    
+    components = connected_components(g)
+    print("图的连通分量:", components)
+    
+    return components
+
+# 9. 最小生成树 (Kruskal算法)
+def kruskal_mst(vertices, edges):
+    """Kruskal算法求最小生成树"""
+    # 并查集实现
+    parent = {v: v for v in vertices}
+    
+    def find(v):
+        while parent[v] != v:
+            parent[v] = parent[parent[v]]  # 路径压缩
+            v = parent[v]
+        return v
+    
+    def union(u, v):
+        root_u = find(u)
+        root_v = find(v)
+        if root_u != root_v:
+            parent[root_u] = root_v
+            return True
+        return False
+    
+    # 按权重排序边
+    sorted_edges = sorted(edges, key=lambda x: x[2])
+    mst = []
+    
+    for u, v, weight in sorted_edges:
+        if union(u, v):
+            mst.append((u, v, weight))
+            if len(mst) == len(vertices) - 1:
+                break
+    
+    return mst
+
+def mst_example():
+    """最小生成树示例"""
+    vertices = ['A', 'B', 'C', 'D', 'E', 'F']
+    edges = [
+        ('A', 'B', 4), ('A', 'C', 4),
+        ('B', 'C', 2), ('B', 'D', 5),
+        ('C', 'D', 1), ('C', 'E', 3),
+        ('D', 'E', 6), ('D', 'F', 2),
+        ('E', 'F', 3)
+    ]
+    
+    mst = kruskal_mst(vertices, edges)
+    print("最小生成树:", mst)
+    
+    # 计算总权重
+    total_weight = sum(weight for _, _, weight in mst)
+    print("最小生成树的总权重:", total_weight)
+    
+    return mst, total_weight
+
+# 示例使用
+if __name__ == "__main__":
+    print("=== 图的表示方法 ===")
+    graph_representation()
+    
+    print("\n=== 图的基本操作 ===")
+    graph_operations_example()
+    
+    print("\n=== DFS遍历示例 ===")
+    dfs_example()
+    
+    print("\n=== BFS遍历示例 ===")
+    bfs_example()
+    
+    print("\n=== 环检测示例 ===")
+    cycle_detection_example()
+    
+    print("\n=== 拓扑排序示例 ===")
+    topological_sort_example()
+    
+    print("\n=== 最短路径示例 ===")
+    shortest_path_example()
+    
+    print("\n=== 连通分量示例 ===")
+    connected_components_example()
+    
+    print("\n=== 最小生成树示例 ===")
+    mst_example()
+```
+
